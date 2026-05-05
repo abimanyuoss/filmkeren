@@ -1,17 +1,19 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createBooking } from "@/app/actions";
+import { BookingSteps } from "@/components/customer/booking-steps";
 import { CustomerHeader } from "@/components/customer/customer-header";
 import { getScheduleDetail } from "@/lib/db";
 
 export default async function CheckoutPage({
   searchParams
 }: {
-  searchParams: Promise<{ scheduleId?: string; seats?: string; error?: string }>;
+  searchParams: Promise<{ scheduleId?: string; seats?: string; lockToken?: string; error?: string }>;
 }) {
   const params = await searchParams;
   const scheduleId = params.scheduleId ?? "";
   const seats = (params.seats ?? "").split(",").filter(Boolean);
+  const lockToken = params.lockToken ?? "";
   const detail = scheduleId ? await getScheduleDetail(scheduleId) : null;
 
   if (!detail || seats.length === 0) notFound();
@@ -23,13 +25,19 @@ export default async function CheckoutPage({
   return (
     <main className="customer-app">
       <CustomerHeader />
+      <BookingSteps current={6} />
       <section className="checkout-layout">
         <form action={createBooking} className="customer-panel checkout-form">
           <span className="eyebrow">Checkout</span>
           <h1>Lengkapi Data Pemesan</h1>
           {params.error ? <p className="form-error">Mohon lengkapi nama, email, dan kursi sebelum melanjutkan.</p> : null}
+          <div className="demo-payment-banner">
+            <strong>Pembayaran Simulasi</strong>
+            <span>Tidak ada transaksi uang asli. Sistem hanya membuat booking demo dan e-ticket.</span>
+          </div>
           <input name="scheduleId" type="hidden" value={detail.schedule.id} />
           <input name="seats" type="hidden" value={seats.join(",")} />
+          <input name="lockToken" type="hidden" value={lockToken} />
 
           <label>
             Nama Lengkap
@@ -54,7 +62,7 @@ export default async function CheckoutPage({
           </label>
 
           <button className="primary-button full" type="submit">
-            Bayar & Terbitkan E-ticket
+            Bayar Simulasi & Terbitkan E-ticket
           </button>
         </form>
 
@@ -67,6 +75,7 @@ export default async function CheckoutPage({
           <p>
             {detail.schedule.showDate} / {detail.schedule.startsAt} / {detail.schedule.format}
           </p>
+          <span className="simulation-pill">Demo Payment</span>
           <div className="ticket-list">
             {seats.map((seat) => (
               <div className="ticket-row" key={seat}>

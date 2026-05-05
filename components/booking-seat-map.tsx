@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { ArrowRight, Armchair, MapPin } from "lucide-react";
+import { useMemo, useState, useTransition } from "react";
+import { AlertCircle, ArrowRight, Armchair, MapPin, TimerReset } from "lucide-react";
 import type { BookingSeat, Movie, Schedule } from "@/lib/types";
 
 const rows = ["H", "G", "F", "E", "D", "C", "B"];
@@ -18,13 +18,46 @@ export function BookingSeatMap({
   seats: BookingSeat[];
 }) {
   const [selected, setSelected] = useState<string[]>([]);
-  const occupied = useMemo(() => new Set(seats.filter((seat) => seat.status === "occupied").map((seat) => seat.code)), [seats]);
+  const [lockToken] = useState(() => {
+    if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+    return `lock-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  });
+  const [lockMessage, setLockMessage] = useState("Kursi pilihan dikunci sementara selama 5 menit.");
+  const [isPending, startTransition] = useTransition();
+  const occupied = useMemo(
+    () => new Set(seats.filter((seat) => seat.status === "occupied").map((seat) => seat.code)),
+    [seats]
+  );
+  const locked = useMemo(() => new Set(seats.filter((seat) => seat.status === "locked").map((seat) => seat.code)), [seats]);
   const total = selected.length * schedule.price;
-  const checkoutHref = `/checkout?scheduleId=${encodeURIComponent(schedule.id)}&seats=${encodeURIComponent(selected.join(","))}`;
+  const checkoutHref = `/checkout?scheduleId=${encodeURIComponent(schedule.id)}&seats=${encodeURIComponent(
+    selected.join(",")
+  )}&lockToken=${encodeURIComponent(lockToken)}`;
 
   function toggleSeat(code: string) {
-    if (occupied.has(code)) return;
-    setSelected((current) => (current.includes(code) ? current.filter((item) => item !== code) : [...current, code].sort()));
+    if (occupied.has(code) || locked.has(code) || isPending) return;
+
+    const nextSeats = selected.includes(code)
+      ? selected.filter((item) => item !== code)
+      : [...selected, code].sort();
+
+    startTransition(async () => {
+      const response = await fetch("/api/seat-lock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scheduleId: schedule.id, seats: nextSeats, lockToken })
+      });
+      const payload = (await response.json().catch(() => ({}))) as { message?: string; seats?: string[] };
+
+      if (!response.ok) {
+        setLockMessage(payload.message ?? "Kursi tidak bisa dikunci. Silakan pilih kursi lain.");
+        setSelected((current) => current.filter((seat) => !(payload.seats ?? []).includes(seat)));
+        return;
+      }
+
+      setSelected(nextSeats);
+      setLockMessage(nextSeats.length ? "Kursi pilihan dikunci sementara selama 5 menit." : "Pilih kursi untuk mulai booking.");
+    });
   }
 
   return (
@@ -45,6 +78,9 @@ export function BookingSeatMap({
               <i className="seat occupied" /> Occupied
             </span>
             <span>
+              <i className="seat locked" /> Locked
+            </span>
+            <span>
               <i className="seat selected" /> Selected
             </span>
           </div>
@@ -62,12 +98,13 @@ export function BookingSeatMap({
               {seatNumbers.map((number) => {
                 const code = `${row}${number}`;
                 const isOccupied = occupied.has(code);
+                const isLocked = locked.has(code);
                 const isSelected = selected.includes(code);
                 return (
                   <button
                     aria-label={`Seat ${code}`}
-                    className={`seat ${isOccupied ? "occupied" : isSelected ? "selected" : "available"}`}
-                    disabled={isOccupied}
+                    className={`seat ${isOccupied ? "occupied" : isLocked ? "locked" : isSelected ? "selected" : "available"}`}
+                    disabled={isOccupied || isLocked || isPending}
                     key={code}
                     onClick={() => toggleSeat(code)}
                     type="button"
@@ -102,6 +139,10 @@ export function BookingSeatMap({
           <div className="panel-heading">
             <h2>Booking Summary</h2>
             <Armchair size={18} />
+          </div>
+          <div className={lockMessage.includes("tidak") ? "seat-lock-note warning" : "seat-lock-note"}>
+            {lockMessage.includes("tidak") ? <AlertCircle size={16} /> : <TimerReset size={16} />}
+            <span>{lockMessage}</span>
           </div>
 
           <div className="ticket-list">

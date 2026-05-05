@@ -1,5 +1,6 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSqlClient } from "@/lib/db";
@@ -57,6 +58,57 @@ export async function deleteMovie(formData: FormData) {
   revalidatePath("/admin/movies");
 }
 
+export async function updateMovie(formData: FormData) {
+  const sql = getSqlClient();
+  const movieId = String(formData.get("movieId") ?? "");
+
+  if (!sql || !movieId) {
+    revalidatePath("/admin/movies");
+    return;
+  }
+
+  const title = String(formData.get("title") ?? "Untitled").trim() || "Untitled";
+  const genre = String(formData.get("genre") ?? "").trim() || "Drama";
+  const durationMin = Number(formData.get("durationMin") ?? 120);
+  const status = String(formData.get("status") ?? "").trim() || "Coming Soon";
+  const rating = String(formData.get("rating") ?? "").trim() || "PG-13";
+  const releaseDate = String(formData.get("releaseDate") ?? "").trim() || new Date().toISOString().slice(0, 10);
+  const synopsis = String(formData.get("synopsis") ?? "");
+  const posterTone = String(formData.get("posterTone") ?? "").trim() || "void";
+  const posterUrl = String(formData.get("posterUrl") ?? "").trim();
+  const director = String(formData.get("director") ?? "").trim();
+  const cast = String(formData.get("cast") ?? "").trim();
+  const trailerUrl = String(formData.get("trailerUrl") ?? "").trim();
+  const imdbRankValue = String(formData.get("imdbRank") ?? "").trim();
+  const imdbRank = imdbRankValue ? Number(imdbRankValue) : null;
+
+  await sql`
+    update movies
+    set
+      title = ${title},
+      genre = ${genre},
+      duration_min = ${durationMin},
+      status = ${status},
+      rating = ${rating},
+      release_date = ${releaseDate},
+      synopsis = ${synopsis},
+      poster_tone = ${posterTone},
+      poster_url = ${posterUrl},
+      director = ${director},
+      cast_members = ${cast},
+      trailer_url = ${trailerUrl},
+      imdb_rank = ${imdbRank},
+      updated_at = now()
+    where id = ${movieId}
+  `;
+
+  revalidatePath("/");
+  revalidatePath("/movies");
+  revalidatePath(`/movies/${movieId}`);
+  revalidatePath("/admin");
+  revalidatePath("/admin/movies");
+}
+
 export async function createSchedule(formData: FormData) {
   const sql = getSqlClient();
   if (!sql) {
@@ -78,6 +130,56 @@ export async function createSchedule(formData: FormData) {
       insert into schedules (movie_id, cinema_id, studio_id, starts_at, ends_at, show_date, format, price, occupancy)
       values (${movieId}, ${cinemaId}, ${studioId}, ${startsAt}, ${endsAt}, ${showDate}, ${format}, ${price}, 0)
     `;
+  }
+
+  revalidatePath("/admin/schedules");
+  revalidatePath("/movies");
+}
+
+export async function updateSchedule(formData: FormData) {
+  const sql = getSqlClient();
+  const scheduleId = String(formData.get("scheduleId") ?? "");
+
+  if (!sql || !scheduleId) {
+    revalidatePath("/admin/schedules");
+    return;
+  }
+
+  const movieId = String(formData.get("movieId") ?? "");
+  const cinemaId = String(formData.get("cinemaId") ?? "");
+  const studioId = String(formData.get("studioId") ?? "");
+  const showDate = String(formData.get("showDate") ?? new Date().toISOString().slice(0, 10));
+  const startsAt = String(formData.get("startsAt") ?? "12:00");
+  const endsAt = String(formData.get("endsAt") ?? "14:00");
+  const format = String(formData.get("format") ?? "Regular 2D");
+  const price = Number(formData.get("price") ?? 65000);
+
+  if (movieId && cinemaId && studioId) {
+    await sql`
+      update schedules
+      set
+        movie_id = ${movieId},
+        cinema_id = ${cinemaId},
+        studio_id = ${studioId},
+        show_date = ${showDate},
+        starts_at = ${startsAt},
+        ends_at = ${endsAt},
+        format = ${format},
+        price = ${price}
+      where id = ${scheduleId}
+    `;
+  }
+
+  revalidatePath("/admin/schedules");
+  revalidatePath("/movies");
+}
+
+export async function deleteSchedule(formData: FormData) {
+  const sql = getSqlClient();
+  const scheduleId = String(formData.get("scheduleId") ?? "");
+
+  if (sql && scheduleId) {
+    await sql`delete from schedules where id = ${scheduleId}`;
   }
 
   revalidatePath("/admin/schedules");
@@ -112,6 +214,7 @@ export async function createBooking(formData: FormData) {
   const customerEmail = String(formData.get("customerEmail") ?? "").trim();
   const customerPhone = String(formData.get("customerPhone") ?? "").trim();
   const paymentMethod = String(formData.get("paymentMethod") ?? "QRIS").trim();
+  const lockToken = String(formData.get("lockToken") ?? "").trim();
 
   if (!sql || !scheduleId || seats.length === 0 || !customerName || !customerEmail) {
     redirect(`/checkout?scheduleId=${encodeURIComponent(scheduleId)}&seats=${encodeURIComponent(rawSeats)}&error=missing`);
@@ -128,6 +231,21 @@ export async function createBooking(formData: FormData) {
 
   if (alreadyBooked.length > 0) {
     redirect(`/booking/${scheduleId}?error=seat-unavailable`);
+  }
+
+  await sql`delete from seat_locks where expires_at <= now()`;
+
+  const lockedByOther = await sql`
+    select seat_code
+    from seat_locks
+    where schedule_id = ${scheduleId}
+      and seat_code = any(${seats})
+      and lock_token <> ${lockToken}
+      and expires_at > now()
+  `;
+
+  if (lockedByOther.length > 0) {
+    redirect(`/booking/${scheduleId}?error=seat-locked`);
   }
 
   const [schedule] = await sql`
@@ -165,7 +283,38 @@ export async function createBooking(formData: FormData) {
     `;
   }
 
+  await sql`
+    delete from seat_locks
+    where schedule_id = ${scheduleId}
+      and seat_code = any(${seats})
+  `;
+
   revalidatePath(`/booking/${scheduleId}`);
   revalidatePath("/admin");
   redirect(`/ticket/${booking.id}`);
+}
+
+export async function loginAdmin(formData: FormData) {
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const password = String(formData.get("password") ?? "").trim();
+
+  if (email !== "abimanyu.panji@filmkeren.id" || password !== "admin123") {
+    redirect("/login?error=invalid");
+  }
+
+  const cookieStore = await cookies();
+  cookieStore.set("filmkeren_admin", "abimanyu-panji", {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 8
+  });
+
+  redirect("/admin");
+}
+
+export async function logoutAdmin() {
+  const cookieStore = await cookies();
+  cookieStore.delete("filmkeren_admin");
+  redirect("/login");
 }

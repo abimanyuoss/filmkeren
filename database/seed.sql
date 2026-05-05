@@ -1,4 +1,4 @@
-truncate table booking_seats, bookings, sales, studio_seats, schedules, studios, cinemas, admin_users, movies restart identity cascade;
+truncate table seat_locks, booking_seats, bookings, sales, studio_seats, schedules, studios, cinemas, admin_users, movies restart identity cascade;
 
 insert into cinemas (id, name, location, address)
 values

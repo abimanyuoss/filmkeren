@@ -6,7 +6,7 @@ export function PrintTicketButton() {
   return (
     <button className="secondary-button" onClick={() => window.print()} type="button">
       <Download size={16} />
-      Download
+      Cetak / Download
     </button>
   );
 }

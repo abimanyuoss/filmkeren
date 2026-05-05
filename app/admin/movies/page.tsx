@@ -1,5 +1,5 @@
 import { Plus } from "lucide-react";
-import { createMovie, deleteMovie } from "@/app/actions";
+import { createMovie, deleteMovie, updateMovie } from "@/app/actions";
 import { EmptyMovieDraft, MoviePosterCard, PageHeader, PrimaryButton } from "@/components/ui";
 import { getMovies } from "@/lib/db";
 
@@ -24,6 +24,79 @@ export default async function MoviesPage() {
           {movies.map((movie) => (
             <div className="admin-movie-card" key={movie.id}>
               <MoviePosterCard movie={movie} />
+              <details className="inline-edit-panel">
+                <summary>Edit Data</summary>
+                <form action={updateMovie} className="inline-edit-form">
+                  <input name="movieId" type="hidden" value={movie.id} />
+                  <label>
+                    Title
+                    <input name="title" defaultValue={movie.title} required />
+                  </label>
+                  <div className="form-grid">
+                    <label>
+                      Genre
+                      <input name="genre" defaultValue={movie.genre} required />
+                    </label>
+                    <label>
+                      Duration
+                      <input min="1" name="durationMin" defaultValue={movie.durationMin} required type="number" />
+                    </label>
+                    <label>
+                      Rating
+                      <input name="rating" defaultValue={movie.rating} required />
+                    </label>
+                    <label>
+                      Status
+                      <select name="status" defaultValue={movie.status}>
+                        <option>Now Showing</option>
+                        <option>Coming Soon</option>
+                        <option>Sold Out</option>
+                      </select>
+                    </label>
+                    <label>
+                      Release Date
+                      <input name="releaseDate" defaultValue={movie.releaseDate} type="date" />
+                    </label>
+                    <label>
+                      IMDb Rank
+                      <input min="1" name="imdbRank" defaultValue={movie.imdbRank || ""} type="number" />
+                    </label>
+                  </div>
+                  <label>
+                    Poster URL
+                    <input name="posterUrl" defaultValue={movie.posterUrl} type="url" />
+                  </label>
+                  <label>
+                    Trailer URL
+                    <input name="trailerUrl" defaultValue={movie.trailerUrl} type="url" />
+                  </label>
+                  <label>
+                    Director
+                    <input name="director" defaultValue={movie.director} />
+                  </label>
+                  <label>
+                    Cast
+                    <input name="cast" defaultValue={movie.cast.join(", ")} />
+                  </label>
+                  <label>
+                    Poster Tone
+                    <select name="posterTone" defaultValue={movie.posterTone}>
+                      <option value="void">Void</option>
+                      <option value="noir">Noir</option>
+                      <option value="velocity">Velocity</option>
+                      <option value="dune">Dune</option>
+                      <option value="silver">Silver</option>
+                    </select>
+                  </label>
+                  <label>
+                    Synopsis
+                    <textarea name="synopsis" defaultValue={movie.synopsis} rows={3} />
+                  </label>
+                  <button className="secondary-button" type="submit">
+                    Update Movie
+                  </button>
+                </form>
+              </details>
               <form action={deleteMovie}>
                 <input name="movieId" type="hidden" value={movie.id} />
                 <button className="danger-button" type="submit">

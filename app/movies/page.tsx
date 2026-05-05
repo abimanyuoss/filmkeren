@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Search, Star } from "lucide-react";
+import { BookingSteps } from "@/components/customer/booking-steps";
 import { CustomerHeader } from "@/components/customer/customer-header";
 import { getMovies } from "@/lib/db";
 
@@ -9,6 +10,7 @@ export default async function MoviesPage() {
   return (
     <main className="customer-app">
       <CustomerHeader />
+      <BookingSteps current={1} />
 
       <section className="customer-page-head">
         <div>

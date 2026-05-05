@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CheckCircle2, QrCode } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
+import { BookingSteps } from "@/components/customer/booking-steps";
 import { CustomerHeader } from "@/components/customer/customer-header";
 import { PrintTicketButton } from "@/components/customer/print-ticket-button";
 import { getBookingDetail } from "@/lib/db";
@@ -14,6 +15,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
   return (
     <main className="customer-app">
       <CustomerHeader />
+      <BookingSteps current={7} />
       <section className="ticket-page">
         <article className="e-ticket">
           <div className="ticket-success">
@@ -38,11 +40,17 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
           </div>
           <div className="ticket-code">
             <div>
-              <QrCode size={96} />
+              <img
+                alt={`QR Code ${booking.bookingCode}`}
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(
+                  `FilmKeren:${booking.bookingCode}:${booking.id}`
+                )}`}
+              />
             </div>
             <span>
               <small>Booking Code</small>
               <strong>{booking.bookingCode}</strong>
+              <em>Scan QR di gate studio.</em>
             </span>
           </div>
           <div className="ticket-footer">
@@ -57,6 +65,18 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
             <span>
               <small>Total</small>
               <strong>{formatRupiah(booking.totalAmount)}</strong>
+            </span>
+            <span>
+              <small>Studio</small>
+              <strong>{booking.schedule.studioName}</strong>
+            </span>
+            <span>
+              <small>Tanggal</small>
+              <strong>{booking.schedule.showDate}</strong>
+            </span>
+            <span>
+              <small>Jam</small>
+              <strong>{booking.schedule.startsAt}</strong>
             </span>
           </div>
         </article>

@@ -113,7 +113,7 @@ export type DailySalesData = {
 
 export type BookingSeat = {
   code: string;
-  status: "available" | "occupied";
+  status: "available" | "locked" | "occupied";
 };
 
 export type BookingDetail = {

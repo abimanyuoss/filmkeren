@@ -1,21 +1,54 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDays, Clock, MapPin, Play, Star, Ticket } from "lucide-react";
+import { CalendarDays, Clock, Film, MapPin, Play, Star, Ticket, UserRound } from "lucide-react";
+import { BookingSteps } from "@/components/customer/booking-steps";
 import { CustomerHeader } from "@/components/customer/customer-header";
 import { getMovieById, getMovieShowtimes } from "@/lib/db";
 
-export default async function MovieDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function MovieDetailPage({
+  params,
+  searchParams
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ cinemaId?: string; date?: string }>;
+}) {
   const { id } = await params;
+  const filters = await searchParams;
   const [movie, showtimes] = await Promise.all([getMovieById(id), getMovieShowtimes(id)]);
 
   if (!movie) notFound();
 
-  const firstShowtime = showtimes[0];
+  const movieId = movie.id;
+  const cinemas = Array.from(new Map(showtimes.map((schedule) => [schedule.cinemaId, schedule])).values());
+  const selectedCinemaId = filters.cinemaId || cinemas[0]?.cinemaId || "";
+  const dates = Array.from(
+    new Set(
+      showtimes
+        .filter((schedule) => !selectedCinemaId || schedule.cinemaId === selectedCinemaId)
+        .map((schedule) => schedule.showDate)
+    )
+  );
+  const selectedDate = filters.date || dates[0] || "";
+  const filteredShowtimes = showtimes.filter((schedule) => {
+    if (selectedCinemaId && schedule.cinemaId !== selectedCinemaId) return false;
+    if (selectedDate && schedule.showDate !== selectedDate) return false;
+    return true;
+  });
+  const firstShowtime = filteredShowtimes[0] ?? showtimes[0];
   const bookingHref = firstShowtime ? `/booking/${firstShowtime.id}` : "#showtimes";
+
+  function movieHref(nextCinemaId: string, nextDate = "") {
+    const params = new URLSearchParams();
+    if (nextCinemaId) params.set("cinemaId", nextCinemaId);
+    if (nextDate) params.set("date", nextDate);
+    const query = params.toString();
+    return query ? `/movies/${movieId}?${query}` : `/movies/${movieId}`;
+  }
 
   return (
     <main className="customer-app">
       <CustomerHeader />
+      <BookingSteps current={2} />
 
       <section className="movie-detail-hero">
         <img alt={`${movie.title} poster`} className="detail-poster" src={movie.posterUrl} />
@@ -26,17 +59,34 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
           </span>
           <h1>{movie.title}</h1>
           <p>{movie.synopsis}</p>
-          <div className="detail-meta">
+          <div className="detail-meta premium">
             <span>
               <Clock size={15} />
               {movie.durationMin} menit
             </span>
-            <span>{movie.genre}</span>
+            <span>
+              <Film size={15} />
+              {movie.genre}
+            </span>
             <span>{movie.rating}</span>
           </div>
-          <div className="cast-strip">
-            <span>Director: {movie.director}</span>
-            <span>Cast: {movie.cast.join(", ")}</span>
+          <div className="movie-fact-grid">
+            <span>
+              <small>Sutradara</small>
+              <strong>{movie.director}</strong>
+            </span>
+            <span>
+              <small>Pemain</small>
+              <strong>{movie.cast.join(", ")}</strong>
+            </span>
+            <span>
+              <small>Rilis</small>
+              <strong>{movie.releaseDate}</strong>
+            </span>
+            <span>
+              <small>Status</small>
+              <strong>{movie.status}</strong>
+            </span>
           </div>
           <div className="customer-hero-actions">
             <Link className="primary-button" href={bookingHref}>
@@ -55,13 +105,54 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
         <div className="customer-section-title">
           <div>
             <span className="eyebrow">Showtimes</span>
-            <h2>Pilih Jadwal</h2>
+            <h2>Pilih Bioskop, Tanggal, dan Jam</h2>
           </div>
         </div>
 
-        <div className="showtime-grid">
-          {showtimes.length ? (
-            showtimes.map((schedule) => (
+        {showtimes.length ? (
+          <>
+            <div className="choice-stack">
+              <div>
+                <span className="choice-label">
+                  <UserRound size={15} />
+                  1. Pilih bioskop
+                </span>
+                <div className="choice-chip-row">
+                  {cinemas.map((schedule) => (
+                    <Link
+                      className={selectedCinemaId === schedule.cinemaId ? "selected" : ""}
+                      href={movieHref(schedule.cinemaId)}
+                      key={schedule.cinemaId}
+                    >
+                      <strong>{schedule.cinemaName}</strong>
+                      <small>{schedule.cinemaLocation}</small>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <span className="choice-label">
+                  <CalendarDays size={15} />
+                  2. Pilih tanggal
+                </span>
+                <div className="choice-chip-row compact">
+                  {dates.map((date) => (
+                    <Link
+                      className={selectedDate === date ? "selected" : ""}
+                      href={movieHref(selectedCinemaId, date)}
+                      key={date}
+                    >
+                      <strong>{formatDate(date)}</strong>
+                      <small>{date}</small>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="showtime-grid">
+              {filteredShowtimes.map((schedule) => (
               <article className="showtime-card" key={schedule.id}>
                 <div>
                   <h3>{schedule.cinemaName}</h3>
@@ -83,11 +174,12 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
                   Pilih Kursi {schedule.startsAt}
                 </Link>
               </article>
-            ))
-          ) : (
-            <article className="customer-panel">Belum ada jadwal aktif untuk film ini.</article>
-          )}
-        </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <article className="customer-panel">Belum ada jadwal aktif untuk film ini.</article>
+        )}
       </section>
     </main>
   );
@@ -99,6 +191,10 @@ function formatRupiah(value: number) {
     currency: "IDR",
     maximumFractionDigits: 0
   }).format(value);
+}
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat("id-ID", { day: "2-digit", month: "short" }).format(new Date(value));
 }
 
 function toYoutubeWatchUrl(url: string) {

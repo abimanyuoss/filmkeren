@@ -3,8 +3,14 @@ import { FileDown } from "lucide-react";
 import { MetricCard, PageHeader, PrimaryButton } from "@/components/ui";
 import { getAnalytics } from "@/lib/db";
 
-export default async function AnalyticsPage() {
-  const analytics = await getAnalytics();
+export default async function AnalyticsPage({
+  searchParams
+}: {
+  searchParams: Promise<{ period?: "today" | "7d" | "30d" | "month" }>;
+}) {
+  const params = await searchParams;
+  const period = params.period ?? "today";
+  const analytics = await getAnalytics(period);
   const displayedMovies = analytics.topMovies.filter((movie) => movie.ticketsSold > 0 || movie.revenue > 0);
   const hasMovieSales = displayedMovies.length > 0;
   const hasStudioShare = analytics.studioShare.some((item) => item.value > 0);
@@ -22,6 +28,19 @@ export default async function AnalyticsPage() {
         eyebrow="Reports"
         title="Sales Reports & Analytics"
       />
+
+      <nav className="period-filter" aria-label="Filter periode analytics">
+        {[
+          ["today", "Hari Ini"],
+          ["7d", "7 Hari"],
+          ["30d", "30 Hari"],
+          ["month", "Bulan Ini"]
+        ].map(([value, label]) => (
+          <a className={period === value ? "selected" : ""} href={`/admin/analytics?period=${value}`} key={value}>
+            {label}
+          </a>
+        ))}
+      </nav>
 
       <section className="metric-grid">
         {analytics.metrics.map((metric) => (

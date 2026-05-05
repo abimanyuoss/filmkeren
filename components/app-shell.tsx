@@ -16,6 +16,7 @@ import {
   Users
 } from "lucide-react";
 import type { ReactNode } from "react";
+import { logoutAdmin } from "@/app/actions";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: Gauge },
@@ -55,10 +56,12 @@ export function AppShell({ children }: { children: ReactNode }) {
           })}
         </nav>
 
-        <Link className="nav-link logout-link" href="/">
+        <form action={logoutAdmin} className="logout-link">
+          <button className="nav-link logout-button" type="submit">
           <LogOut size={18} />
           <span>Logout</span>
-        </Link>
+          </button>
+        </form>
       </aside>
 
       <header className="topbar">

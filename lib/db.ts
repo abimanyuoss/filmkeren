@@ -304,6 +304,16 @@ export const getScheduleDetail = cache(async (
     `;
     const bookedSeats = new Set(bookedRows.map((row) => String(row.seat_code)));
 
+    await sql`delete from seat_locks where expires_at <= now()`;
+
+    const lockedRows = await sql`
+      select seat_code
+      from seat_locks
+      where schedule_id = ${scheduleId}
+        and expires_at > now()
+    `;
+    const lockedSeats = new Set(lockedRows.map((row) => String(row.seat_code)));
+
     const rows = await sql`
       select
         seat_code as code,
@@ -317,7 +327,12 @@ export const getScheduleDetail = cache(async (
       const code = String(row.code);
       return {
         code,
-        status: bookedSeats.has(code) || String(row.status) === "occupied" ? "occupied" : "available"
+        status:
+          bookedSeats.has(code) || String(row.status) === "occupied"
+            ? "occupied"
+            : lockedSeats.has(code)
+              ? "locked"
+              : "available"
       } as BookingSeat;
     });
 
@@ -471,10 +486,11 @@ export const getDashboardData = cache(async (): Promise<{
   }
 });
 
-export const getAnalytics = cache(async (): Promise<AnalyticsData> => {
+export const getAnalytics = cache(async (period: "today" | "7d" | "30d" | "month" = "today"): Promise<AnalyticsData> => {
   if (!sql) return mockAnalytics;
 
   try {
+    const startDate = getAnalyticsStartDate(period);
     const [metricRow] = await sql`
       with schedule_occupancy as (
         select
@@ -483,14 +499,33 @@ export const getAnalytics = cache(async (): Promise<AnalyticsData> => {
           count(bs.id)::int as booked_seats
         from schedules s
         join studios st on st.id = s.studio_id
-        left join bookings b on b.schedule_id = s.id and b.status in ('CONFIRMED', 'PAID')
+        left join bookings b on b.schedule_id = s.id
+          and b.status in ('CONFIRMED', 'PAID')
+          and (${startDate}::date is null or b.created_at::date >= ${startDate}::date)
         left join booking_seats bs on bs.booking_id = b.id
         group by s.id, st.capacity
       )
       select
-        (select count(*)::int from bookings where created_at::date = current_date and status in ('CONFIRMED', 'PAID')) as "bookingsToday",
-        (select count(bs.id)::int from booking_seats bs join bookings b on b.id = bs.booking_id where b.status in ('CONFIRMED', 'PAID')) as tickets,
-        (select coalesce(sum(bs.price), 0)::numeric from booking_seats bs join bookings b on b.id = bs.booking_id where b.status in ('CONFIRMED', 'PAID')) as revenue,
+        (
+          select count(*)::int
+          from bookings
+          where status in ('CONFIRMED', 'PAID')
+            and (${startDate}::date is null or created_at::date >= ${startDate}::date)
+        ) as "bookingsToday",
+        (
+          select count(bs.id)::int
+          from booking_seats bs
+          join bookings b on b.id = bs.booking_id
+          where b.status in ('CONFIRMED', 'PAID')
+            and (${startDate}::date is null or b.created_at::date >= ${startDate}::date)
+        ) as tickets,
+        (
+          select coalesce(sum(bs.price), 0)::numeric
+          from booking_seats bs
+          join bookings b on b.id = bs.booking_id
+          where b.status in ('CONFIRMED', 'PAID')
+            and (${startDate}::date is null or b.created_at::date >= ${startDate}::date)
+        ) as revenue,
         coalesce(round(avg(case when capacity > 0 then (booked_seats::numeric / capacity) * 100 else 0 end)), 0)::int as "avgOccupancy"
       from schedule_occupancy
     `;
@@ -514,7 +549,9 @@ export const getAnalytics = cache(async (): Promise<AnalyticsData> => {
           coalesce(sum(bs.price), 0)::numeric as revenue
         from movies m
         left join schedules s on s.movie_id = m.id
-        left join bookings b on b.schedule_id = s.id and b.status in ('CONFIRMED', 'PAID')
+        left join bookings b on b.schedule_id = s.id
+          and b.status in ('CONFIRMED', 'PAID')
+          and (${startDate}::date is null or b.created_at::date >= ${startDate}::date)
         left join booking_seats bs on bs.booking_id = b.id
         group by m.id
       )
@@ -540,7 +577,9 @@ export const getAnalytics = cache(async (): Promise<AnalyticsData> => {
           count(bs.id)::int as tickets
         from studios st
         left join schedules s on s.studio_id = st.id
-        left join bookings b on b.schedule_id = s.id and b.status in ('CONFIRMED', 'PAID')
+        left join bookings b on b.schedule_id = s.id
+          and b.status in ('CONFIRMED', 'PAID')
+          and (${startDate}::date is null or b.created_at::date >= ${startDate}::date)
         left join booking_seats bs on bs.booking_id = b.id
         group by st.id
       ),
@@ -558,9 +597,9 @@ export const getAnalytics = cache(async (): Promise<AnalyticsData> => {
     return {
       metrics: [
         {
-          label: "Booking Hari Ini",
+          label: "Total Booking",
           value: Number(metricRow.bookingsToday ?? 0).toLocaleString("id-ID"),
-          trend: "dari checkout",
+          trend: analyticsPeriodLabel(period),
           tone: "neutral"
         },
         {
@@ -598,6 +637,21 @@ export const getAnalytics = cache(async (): Promise<AnalyticsData> => {
     return mockAnalytics;
   }
 });
+
+function getAnalyticsStartDate(period: "today" | "7d" | "30d" | "month") {
+  const date = new Date();
+  if (period === "7d") date.setDate(date.getDate() - 6);
+  if (period === "30d") date.setDate(date.getDate() - 29);
+  if (period === "month") date.setDate(1);
+  return date.toISOString().slice(0, 10);
+}
+
+function analyticsPeriodLabel(period: "today" | "7d" | "30d" | "month") {
+  if (period === "7d") return "7 hari terakhir";
+  if (period === "30d") return "30 hari terakhir";
+  if (period === "month") return "bulan ini";
+  return "hari ini";
+}
 
 export const getBookingData = cache(async (): Promise<{
   schedule: Schedule;

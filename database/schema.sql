@@ -114,6 +114,19 @@ alter table bookings add column if not exists expires_at timestamptz not null de
 alter table bookings add column if not exists paid_at timestamptz;
 create unique index if not exists bookings_booking_code_key on bookings(booking_code);
 
+create table if not exists seat_locks (
+  id text primary key default gen_random_uuid()::text,
+  schedule_id text not null references schedules(id) on delete cascade,
+  seat_code text not null,
+  lock_token text not null,
+  expires_at timestamptz not null default now() + interval '5 minutes',
+  created_at timestamptz not null default now(),
+  unique (schedule_id, seat_code)
+);
+
+create index if not exists seat_locks_token_idx on seat_locks(lock_token);
+create index if not exists seat_locks_expires_at_idx on seat_locks(expires_at);
+
 create table if not exists booking_seats (
   id text primary key default gen_random_uuid()::text,
   booking_id text not null references bookings(id) on delete cascade,

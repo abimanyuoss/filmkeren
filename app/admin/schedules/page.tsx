@@ -1,10 +1,9 @@
 import Link from "next/link";
 import { CalendarPlus } from "lucide-react";
-import { createSchedule } from "@/app/actions";
+import { createSchedule, deleteSchedule, updateSchedule } from "@/app/actions";
 import {
   PageHeader,
   PrimaryButton,
-  ScheduleRow,
   StudioUtilization
 } from "@/components/ui";
 import { getCinemas, getMovies, getSchedules, getStudios, getStudioUtilization } from "@/lib/db";
@@ -141,7 +140,97 @@ export default async function SchedulesPage({
           <div className="schedule-list">
             {filteredSchedules.length ? (
               filteredSchedules.map((schedule, index) => (
-                <ScheduleRow active={index === 0} key={schedule.id} schedule={schedule} />
+                <article className={index === 0 ? "schedule-row active editable" : "schedule-row editable"} key={schedule.id}>
+                  <div className="time-block">
+                    <strong>{schedule.startsAt}</strong>
+                    <small>{schedule.endsAt} end</small>
+                  </div>
+                  <img
+                    alt={`${schedule.movieTitle} poster`}
+                    className="mini-poster"
+                    src={schedule.posterUrl || `/posters/${schedule.posterTone}.svg`}
+                  />
+                  <div className="schedule-title">
+                    <h3>{schedule.movieTitle}</h3>
+                    <p>
+                      {schedule.cinemaName} / {schedule.studioName} / {schedule.format}
+                    </p>
+                    <small>{schedule.showDate} / {formatRupiah(schedule.price)}</small>
+                  </div>
+                  <div className="occupancy">
+                    <strong>{schedule.occupancy}%</strong>
+                    <span>
+                      <i style={{ width: `${schedule.occupancy}%` }} />
+                    </span>
+                  </div>
+                  <details className="schedule-edit">
+                    <summary>Edit</summary>
+                    <form action={updateSchedule} className="inline-edit-form">
+                      <input name="scheduleId" type="hidden" value={schedule.id} />
+                      <label>
+                        Film
+                        <select name="movieId" required defaultValue={schedule.movieId}>
+                          {movies.map((movie) => (
+                            <option key={movie.id} value={movie.id}>
+                              {movie.title}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <div className="form-grid">
+                        <label>
+                          Cinema
+                          <select name="cinemaId" required defaultValue={schedule.cinemaId}>
+                            {cinemas.map((cinema) => (
+                              <option key={cinema.id} value={cinema.id}>
+                                {cinema.name}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <label>
+                          Studio
+                          <select name="studioId" required defaultValue={studios.find((studio) => studio.name === schedule.studioName)?.id ?? ""}>
+                            {studios.map((studio) => (
+                              <option key={studio.id} value={studio.id}>
+                                {studio.name} - {studio.format}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <label>
+                          Tanggal
+                          <input name="showDate" type="date" defaultValue={schedule.showDate} required />
+                        </label>
+                        <label>
+                          Harga
+                          <input min="0" name="price" defaultValue={schedule.price} type="number" required />
+                        </label>
+                        <label>
+                          Start
+                          <input name="startsAt" type="time" defaultValue={schedule.startsAt} required />
+                        </label>
+                        <label>
+                          End
+                          <input name="endsAt" type="time" defaultValue={schedule.endsAt} required />
+                        </label>
+                      </div>
+                      <label>
+                        Format
+                        <input name="format" defaultValue={schedule.format} required />
+                      </label>
+                      <button className="secondary-button" type="submit">
+                        Update Jadwal
+                      </button>
+                    </form>
+                  </details>
+                  <form action={deleteSchedule}>
+                    <input name="scheduleId" type="hidden" value={schedule.id} />
+                    <button className="danger-button compact" type="submit">
+                      Hapus
+                    </button>
+                  </form>
+                </article>
               ))
             ) : (
               <div className="empty-state schedule-empty">
@@ -237,4 +326,12 @@ export default async function SchedulesPage({
       </section>
     </>
   );
+}
+
+function formatRupiah(value: number) {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0
+  }).format(value);
 }
