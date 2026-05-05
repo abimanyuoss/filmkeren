@@ -13,10 +13,10 @@ export default async function HomePage() {
 
       <section className="customer-hero">
         <div className="hero-copy">
-          <span className="eyebrow">Cinema Booking Experience</span>
-          <h1>Nonton film terbaik dengan alur booking yang cepat.</h1>
+          <span className="eyebrow">Premium Cinema Experience</span>
+          <h1>Rasakan Sensasi Nonton Nyaman Tanpa Ribet.</h1>
           <p>
-            Pilih film, pilih lokasi, pilih jadwal, pilih kursi, checkout, dan dapatkan e-ticket dalam satu alur.
+            Booking tiket bioskop kini lebih mudah. Pesan kursi favoritmu dan nikmati film terbaik dengan kualitas layar dan suara nomor satu.
           </p>
           <CustomerHeroActions />
         </div>
@@ -34,8 +34,8 @@ export default async function HomePage() {
       <section className="customer-section">
         <div className="customer-section-title">
           <div>
-            <span className="eyebrow">Now Showing</span>
-            <h2>Top IMDb di FilmKeren</h2>
+            <span className="eyebrow">Sedang Tayang</span>
+            <h2>Film Pilihan Minggu Ini</h2>
           </div>
           <Link href="/movies">Lihat semua</Link>
         </div>
@@ -55,7 +55,7 @@ export default async function HomePage() {
       <section className="customer-two-col">
         <article className="customer-panel">
           <div className="panel-heading">
-            <h2>Jadwal Hari Ini</h2>
+            <h2>Jadwal Tayang</h2>
             <CalendarDays size={18} />
           </div>
           <div className="customer-showtime-list">
@@ -75,7 +75,7 @@ export default async function HomePage() {
 
         <article className="customer-panel">
           <div className="panel-heading">
-            <h2>Lokasi Bioskop</h2>
+            <h2>Jaringan Bioskop Kami</h2>
             <MapPin size={18} />
           </div>
           <div className="cinema-list">

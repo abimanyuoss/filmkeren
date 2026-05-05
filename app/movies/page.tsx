@@ -14,9 +14,9 @@ export default async function MoviesPage() {
 
       <section className="customer-page-head">
         <div>
-          <span className="eyebrow">Movie Catalog</span>
-          <h1>Pilih Film</h1>
-          <p>Daftar Top 10 IMDb dengan jadwal aktif di jaringan FilmKeren.</p>
+          <span className="eyebrow">Katalog Film</span>
+          <h1>Sedang Tayang</h1>
+          <p>Temukan film favoritmu dan nikmati pengalaman sinematik terbaik di seluruh jaringan FilmKeren.</p>
         </div>
         <div className="customer-search">
           <Search size={16} />

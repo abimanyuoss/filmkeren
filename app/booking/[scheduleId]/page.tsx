@@ -30,9 +30,9 @@ export default async function BookingSchedulePage({
       <BookingSteps current={5} />
       <section className="customer-page-head compact">
         <div>
-          <span className="eyebrow">Seat Selection</span>
-          <h1>Pilih Kursi</h1>
-          <p>Kursi yang dipilih akan dikunci sementara selama 5 menit sebelum checkout.</p>
+          <span className="eyebrow">Pilih Posisi Favorit</span>
+          <h1>Tentukan Tempat Duduk Anda</h1>
+          <p>Dapatkan pengalaman nonton terbaik dengan memilih kursi Anda. Kami akan mengamankan kursi pilihan Anda selama 5 menit.</p>
           {query.error ? <p className="form-error">Kursi pilihan tidak tersedia. Silakan pilih kursi lain.</p> : null}
         </div>
       </section>

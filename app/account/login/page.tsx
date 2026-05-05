@@ -18,9 +18,9 @@ export default async function CustomerLoginPage({
           <Clapperboard size={28} />
         </span>
         <div>
-          <span className="eyebrow">FilmKeren Account</span>
-          <h1>Masuk Akun</h1>
-          <p>Gunakan akun customer untuk booking tiket. Akun admin akan otomatis masuk ke dashboard.</p>
+          <span className="eyebrow">FilmKeren Member</span>
+          <h1>Selamat Datang Kembali</h1>
+          <p>Silakan masuk untuk melanjutkan pemesanan tiket bioskop Anda dengan mudah dan cepat.</p>
         </div>
 
         {params.error ? <p className="form-error">Email atau password tidak sesuai.</p> : null}

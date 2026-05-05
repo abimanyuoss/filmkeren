@@ -104,8 +104,8 @@ export default async function MovieDetailPage({
       <section className="customer-section" id="showtimes">
         <div className="customer-section-title">
           <div>
-            <span className="eyebrow">Showtimes</span>
-            <h2>Pilih Bioskop, Tanggal, dan Jam</h2>
+            <span className="eyebrow">Jadwal Tayang</span>
+            <h2>Temukan Bioskop & Waktu Terbaik Untukmu</h2>
           </div>
         </div>
 

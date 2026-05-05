@@ -24,9 +24,9 @@ export default async function CustomerRegisterPage({
           <Clapperboard size={28} />
         </span>
         <div>
-          <span className="eyebrow">Customer Account</span>
-          <h1>Daftar akun</h1>
-          <p>Buat akun terlebih dahulu untuk booking tiket dan menyimpan akses e-ticket.</p>
+          <span className="eyebrow">Member Baru</span>
+          <h1>Daftar Akun FilmKeren</h1>
+          <p>Gabung sekarang untuk menikmati kemudahan booking tiket dan akses e-ticket eksklusif.</p>
         </div>
 
         {errorMessage ? <p className="form-error">{errorMessage}</p> : null}

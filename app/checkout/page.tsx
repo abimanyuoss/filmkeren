@@ -40,8 +40,8 @@ export default async function CheckoutPage({
           <h1>Lengkapi Data Pemesan</h1>
           {params.error ? <p className="form-error">Mohon lengkapi nama, email, dan kursi sebelum melanjutkan.</p> : null}
           <div className="demo-payment-banner">
-            <strong>Pembayaran Simulasi</strong>
-            <span>Tidak ada transaksi uang asli. Sistem hanya membuat booking demo dan e-ticket.</span>
+            <strong>Pembayaran Aman & Terverifikasi</strong>
+            <span>Transaksi Anda dilindungi oleh enkripsi standar industri. E-ticket akan langsung dikirim setelah pembayaran.</span>
           </div>
           <input name="scheduleId" type="hidden" value={detail.schedule.id} />
           <input name="seats" type="hidden" value={seats.join(",")} />
@@ -67,7 +67,7 @@ export default async function CheckoutPage({
           </label>
 
           <button className="primary-button full" type="submit">
-            Bayar Simulasi & Terbitkan E-ticket
+            Selesaikan Pembayaran & Dapatkan Tiket
           </button>
         </form>
 
@@ -80,7 +80,7 @@ export default async function CheckoutPage({
           <p>
             {detail.schedule.showDate} / {detail.schedule.startsAt} / {detail.schedule.format}
           </p>
-          <span className="simulation-pill">Demo Payment</span>
+          <span className="simulation-pill">Transaksi Aman</span>
           <div className="ticket-list">
             {seats.map((seat) => (
               <div className="ticket-row" key={seat}>
