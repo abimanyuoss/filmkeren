@@ -31,7 +31,6 @@ export async function CustomerHeader() {
             <Link href="/account/register">Daftar</Link>
           </>
         )}
-        <Link href="/admin">Admin</Link>
       </nav>
     </header>
   );
@@ -44,8 +43,8 @@ export function CustomerHeroActions() {
         <Ticket size={18} />
         Beli Tiket
       </Link>
-      <Link className="secondary-button" href="/admin">
-        Masuk Admin
+      <Link className="secondary-button" href="/account/login">
+        Masuk Akun
       </Link>
     </div>
   );

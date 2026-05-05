@@ -8,7 +8,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const adminSession = cookieStore.get("filmkeren_admin")?.value;
 
   if (adminSession !== "abimanyu-panji") {
-    redirect("/login");
+    redirect("/account/login");
   }
 
   return <AppShell>{children}</AppShell>;

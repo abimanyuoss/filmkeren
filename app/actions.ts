@@ -309,7 +309,7 @@ export async function loginAdmin(formData: FormData) {
   const password = String(formData.get("password") ?? "").trim();
 
   if (email !== "admin@gmail.com" || password !== "admin123") {
-    redirect("/login?error=invalid");
+    redirect("/account/login?error=invalid");
   }
 
   const cookieStore = await cookies();
@@ -326,7 +326,7 @@ export async function loginAdmin(formData: FormData) {
 export async function logoutAdmin() {
   const cookieStore = await cookies();
   cookieStore.delete("filmkeren_admin");
-  redirect("/login");
+  redirect("/account/login");
 }
 
 export async function registerCustomer(formData: FormData) {
@@ -367,6 +367,18 @@ export async function loginCustomer(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "").trim();
   const redirectTo = safeRedirectPath(formData.get("redirectTo"));
+
+  if (email === "admin@gmail.com" && password === "admin123") {
+    const cookieStore = await cookies();
+    cookieStore.delete(CUSTOMER_COOKIE);
+    cookieStore.set("filmkeren_admin", "abimanyu-panji", {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 8
+    });
+    redirect("/admin");
+  }
 
   if (!sql || !email || !password) {
     redirect(`/account/login?error=invalid&redirectTo=${encodeURIComponent(redirectTo)}`);
