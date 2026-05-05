@@ -1,7 +1,8 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { BookingSteps } from "@/components/customer/booking-steps";
 import { CustomerHeader } from "@/components/customer/customer-header";
 import { BookingSeatMap } from "@/components/booking-seat-map";
+import { getCustomerSession } from "@/lib/auth";
 import { getScheduleDetail } from "@/lib/db";
 
 export default async function BookingSchedulePage({
@@ -13,6 +14,12 @@ export default async function BookingSchedulePage({
 }) {
   const { scheduleId } = await params;
   const query = await searchParams;
+  const customer = await getCustomerSession();
+
+  if (!customer) {
+    redirect(`/account/login?redirectTo=${encodeURIComponent(`/booking/${scheduleId}`)}`);
+  }
+
   const detail = await getScheduleDetail(scheduleId);
 
   if (!detail) notFound();

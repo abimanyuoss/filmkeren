@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { Clapperboard, Ticket } from "lucide-react";
+import { logoutCustomer } from "@/app/actions";
+import { getCustomerSession } from "@/lib/auth";
 
-export function CustomerHeader() {
+export async function CustomerHeader() {
+  const customer = await getCustomerSession();
+
   return (
     <header className="customer-header">
       <Link className="customer-brand" href="/">
@@ -12,6 +16,21 @@ export function CustomerHeader() {
       </Link>
       <nav aria-label="Customer navigation">
         <Link href="/movies">Film</Link>
+        {customer ? (
+          <>
+            <span>{customer.name}</span>
+            <form action={logoutCustomer}>
+              <button className="customer-nav-button" type="submit">
+                Keluar
+              </button>
+            </form>
+          </>
+        ) : (
+          <>
+            <Link href="/account/login">Masuk</Link>
+            <Link href="/account/register">Daftar</Link>
+          </>
+        )}
         <Link href="/admin">Admin</Link>
       </nav>
     </header>

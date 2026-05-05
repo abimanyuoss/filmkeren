@@ -1,16 +1,24 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { BookingSteps } from "@/components/customer/booking-steps";
 import { CustomerHeader } from "@/components/customer/customer-header";
 import { PrintTicketButton } from "@/components/customer/print-ticket-button";
+import { getCustomerSession } from "@/lib/auth";
 import { getBookingDetail } from "@/lib/db";
 
 export default async function TicketPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const customer = await getCustomerSession();
+
+  if (!customer) {
+    redirect(`/account/login?redirectTo=${encodeURIComponent(`/ticket/${id}`)}`);
+  }
+
   const booking = await getBookingDetail(id);
 
   if (!booking) notFound();
+  if (booking.customerEmail !== customer.email) notFound();
 
   return (
     <main className="customer-app">

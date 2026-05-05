@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { CUSTOMER_COOKIE, getCustomerSession, safeRedirectPath } from "@/lib/auth";
 import { getSqlClient } from "@/lib/db";
 
 export async function createMovie(formData: FormData) {
@@ -204,17 +205,26 @@ export async function toggleUserAccess(formData: FormData) {
 
 export async function createBooking(formData: FormData) {
   const sql = getSqlClient();
+  const customerSession = await getCustomerSession();
   const scheduleId = String(formData.get("scheduleId") ?? "");
   const rawSeats = String(formData.get("seats") ?? "");
   const seats = rawSeats
     .split(",")
     .map((seat) => seat.trim())
     .filter(Boolean);
-  const customerName = String(formData.get("customerName") ?? "").trim();
-  const customerEmail = String(formData.get("customerEmail") ?? "").trim();
+  const customerName = customerSession?.name ?? "";
+  const customerEmail = customerSession?.email ?? "";
   const customerPhone = String(formData.get("customerPhone") ?? "").trim();
   const paymentMethod = String(formData.get("paymentMethod") ?? "QRIS").trim();
   const lockToken = String(formData.get("lockToken") ?? "").trim();
+
+  if (!customerSession) {
+    redirect(
+      `/account/login?redirectTo=${encodeURIComponent(
+        `/checkout?scheduleId=${scheduleId}&seats=${rawSeats}&lockToken=${lockToken}`
+      )}`
+    );
+  }
 
   if (!sql || !scheduleId || seats.length === 0 || !customerName || !customerEmail) {
     redirect(`/checkout?scheduleId=${encodeURIComponent(scheduleId)}&seats=${encodeURIComponent(rawSeats)}&error=missing`);
@@ -266,11 +276,11 @@ export async function createBooking(formData: FormData) {
 
   const [booking] = await sql`
     insert into bookings (
-      booking_code, schedule_id, customer_name, customer_email, customer_phone,
+      booking_code, schedule_id, customer_id, customer_name, customer_email, customer_phone,
       payment_method, total_amount, status, expires_at, paid_at
     )
     values (
-      ${bookingCode}, ${scheduleId}, ${customerName}, ${customerEmail}, ${customerPhone},
+      ${bookingCode}, ${scheduleId}, ${customerSession.id}, ${customerName}, ${customerEmail}, ${customerPhone},
       ${paymentMethod}, ${totalAmount}, 'PAID', now() + interval '10 minutes', now()
     )
     returning id
@@ -298,7 +308,7 @@ export async function loginAdmin(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "").trim();
 
-  if (email !== "abimanyu.panji@filmkeren.id" || password !== "admin123") {
+  if (email !== "admin@gmail.com" || password !== "admin123") {
     redirect("/login?error=invalid");
   }
 
@@ -317,4 +327,76 @@ export async function logoutAdmin() {
   const cookieStore = await cookies();
   cookieStore.delete("filmkeren_admin");
   redirect("/login");
+}
+
+export async function registerCustomer(formData: FormData) {
+  const sql = getSqlClient();
+  const name = String(formData.get("name") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const phone = String(formData.get("phone") ?? "").trim();
+  const password = String(formData.get("password") ?? "").trim();
+  const redirectTo = safeRedirectPath(formData.get("redirectTo"));
+
+  if (!sql || !name || !email || password.length < 6) {
+    redirect(`/account/register?error=invalid&redirectTo=${encodeURIComponent(redirectTo)}`);
+  }
+
+  try {
+    const [customer] = await sql`
+      insert into customers (name, email, phone, password_hash)
+      values (${name}, ${email}, ${phone}, crypt(${password}, gen_salt('bf')))
+      returning id, name, email
+    `;
+
+    const cookieStore = await cookies();
+    cookieStore.set(CUSTOMER_COOKIE, JSON.stringify(customer), {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30
+    });
+  } catch {
+    redirect(`/account/register?error=exists&redirectTo=${encodeURIComponent(redirectTo)}`);
+  }
+
+  redirect(redirectTo);
+}
+
+export async function loginCustomer(formData: FormData) {
+  const sql = getSqlClient();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const password = String(formData.get("password") ?? "").trim();
+  const redirectTo = safeRedirectPath(formData.get("redirectTo"));
+
+  if (!sql || !email || !password) {
+    redirect(`/account/login?error=invalid&redirectTo=${encodeURIComponent(redirectTo)}`);
+  }
+
+  const [customer] = await sql`
+    select id, name, email
+    from customers
+    where email = ${email}
+      and password_hash = crypt(${password}, password_hash)
+    limit 1
+  `;
+
+  if (!customer) {
+    redirect(`/account/login?error=invalid&redirectTo=${encodeURIComponent(redirectTo)}`);
+  }
+
+  const cookieStore = await cookies();
+  cookieStore.set(CUSTOMER_COOKIE, JSON.stringify(customer), {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 30
+  });
+
+  redirect(redirectTo);
+}
+
+export async function logoutCustomer() {
+  const cookieStore = await cookies();
+  cookieStore.delete(CUSTOMER_COOKIE);
+  redirect("/movies");
 }

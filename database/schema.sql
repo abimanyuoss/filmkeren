@@ -83,6 +83,16 @@ create table if not exists admin_users (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists customers (
+  id text primary key default gen_random_uuid()::text,
+  name text not null,
+  email text not null unique,
+  password_hash text not null,
+  phone text not null default '',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create table if not exists studio_seats (
   id text primary key default gen_random_uuid()::text,
   studio_name text not null,
@@ -110,6 +120,7 @@ alter table bookings add column if not exists booking_code text not null default
 alter table bookings add column if not exists customer_email text not null default '';
 alter table bookings add column if not exists customer_phone text not null default '';
 alter table bookings add column if not exists payment_method text not null default 'QRIS';
+alter table bookings add column if not exists customer_id text references customers(id) on delete set null;
 alter table bookings add column if not exists expires_at timestamptz not null default now() + interval '10 minutes';
 alter table bookings add column if not exists paid_at timestamptz;
 create unique index if not exists bookings_booking_code_key on bookings(booking_code);

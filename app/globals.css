@@ -1892,17 +1892,26 @@ textarea:focus {
   font-weight: 700;
 }
 
+.customer-header nav form {
+  display: inline-flex;
+}
+
 .customer-header nav a,
-.customer-header nav span {
+.customer-header nav span,
+.customer-nav-button {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+  border: 0;
   border-radius: 999px;
+  background: transparent;
+  color: inherit;
   padding: 0.45rem 0.75rem;
 }
 
 .customer-header nav a:hover,
-.customer-header nav span {
+.customer-header nav span,
+.customer-nav-button:hover {
   background: rgba(255, 255, 255, 0.06);
   color: white;
 }
@@ -2391,6 +2400,30 @@ textarea:focus {
   line-height: 1.5;
 }
 
+.account-summary-box {
+  display: grid;
+  gap: 0.25rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.9rem;
+}
+
+.account-summary-box small {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.account-summary-box strong {
+  color: white;
+}
+
+.account-summary-box span {
+  color: var(--muted);
+}
+
 .simulation-pill {
   justify-self: start;
   font-size: 0.78rem;
@@ -2581,6 +2614,15 @@ textarea:focus {
   color: var(--muted);
   line-height: 1.6;
   margin: 0.5rem 0 0;
+}
+
+.auth-switch {
+  text-align: center;
+}
+
+.auth-switch a {
+  color: var(--red-soft);
+  font-weight: 900;
 }
 
 @media (max-width: 980px) {

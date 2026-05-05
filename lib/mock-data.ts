@@ -288,7 +288,7 @@ export const mockUsers: AdminUser[] = [
   {
     id: "user-abimanyu",
     name: "Abimanyu Panji",
-    email: "abimanyu.panji@filmkeren.id",
+    email: "admin@gmail.com",
     role: "Admin",
     status: "Active",
     systemAccess: true,

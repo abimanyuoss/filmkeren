@@ -17,18 +17,17 @@ export default async function LoginPage({
         <div>
           <span className="eyebrow">Admin Access</span>
           <h1>Masuk FilmKeren</h1>
-          <p>Dashboard hanya tersedia untuk role Admin: Abimanyu Panji.</p>
         </div>
 
         {params.error ? <p className="form-error">Email atau password admin tidak sesuai.</p> : null}
 
         <label>
           Email Admin
-          <input name="email" placeholder="abimanyu.panji@filmkeren.id" required type="email" />
+          <input name="email" required type="email" />
         </label>
         <label>
           Password
-          <input name="password" placeholder="admin123" required type="password" />
+          <input name="password" required type="password" />
         </label>
 
         <button className="primary-button full" type="submit">

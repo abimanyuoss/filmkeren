@@ -1,4 +1,4 @@
-truncate table seat_locks, booking_seats, bookings, sales, studio_seats, schedules, studios, cinemas, admin_users, movies restart identity cascade;
+truncate table seat_locks, booking_seats, bookings, sales, studio_seats, schedules, studios, cinemas, customers, admin_users, movies restart identity cascade;
 
 insert into cinemas (id, name, location, address)
 values
@@ -49,7 +49,7 @@ values
 
 insert into admin_users (id, name, email, role, status, system_access, last_active_at)
 values
-  ('user-abimanyu', 'Abimanyu Panji', 'abimanyu.panji@filmkeren.id', 'Admin', 'Active', true, now());
+  ('user-abimanyu', 'Abimanyu Panji', 'admin@gmail.com', 'Admin', 'Active', true, now());
 
 insert into studio_seats (studio_name, seat_code, is_occupied)
 select

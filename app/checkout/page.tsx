@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createBooking } from "@/app/actions";
 import { BookingSteps } from "@/components/customer/booking-steps";
 import { CustomerHeader } from "@/components/customer/customer-header";
+import { getCustomerSession } from "@/lib/auth";
 import { getScheduleDetail } from "@/lib/db";
 
 export default async function CheckoutPage({
@@ -14,6 +15,13 @@ export default async function CheckoutPage({
   const scheduleId = params.scheduleId ?? "";
   const seats = (params.seats ?? "").split(",").filter(Boolean);
   const lockToken = params.lockToken ?? "";
+  const customer = await getCustomerSession();
+  const currentPath = `/checkout?scheduleId=${encodeURIComponent(scheduleId)}&seats=${encodeURIComponent(seats.join(","))}&lockToken=${encodeURIComponent(lockToken)}`;
+
+  if (!customer) {
+    redirect(`/account/login?redirectTo=${encodeURIComponent(currentPath)}`);
+  }
+
   const detail = scheduleId ? await getScheduleDetail(scheduleId) : null;
 
   if (!detail || seats.length === 0) notFound();
@@ -39,14 +47,11 @@ export default async function CheckoutPage({
           <input name="seats" type="hidden" value={seats.join(",")} />
           <input name="lockToken" type="hidden" value={lockToken} />
 
-          <label>
-            Nama Lengkap
-            <input name="customerName" placeholder="Nama sesuai identitas" required />
-          </label>
-          <label>
-            Email
-            <input name="customerEmail" placeholder="email@domain.com" required type="email" />
-          </label>
+          <div className="account-summary-box">
+            <small>Akun Pemesan</small>
+            <strong>{customer.name}</strong>
+            <span>{customer.email}</span>
+          </div>
           <label>
             Nomor HP
             <input name="customerPhone" placeholder="08xxxxxxxxxx" />
