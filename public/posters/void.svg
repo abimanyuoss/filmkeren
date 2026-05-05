@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 900" role="img" aria-label="The Void poster">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#060707"/>
+      <stop offset="0.48" stop-color="#1d2024"/>
+      <stop offset="1" stop-color="#5f0509"/>
+    </linearGradient>
+    <radialGradient id="halo" cx="50%" cy="32%" r="35%">
+      <stop offset="0" stop-color="#ff3340"/>
+      <stop offset="0.4" stop-color="#8a060d"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="600" height="900" fill="url(#bg)"/>
+  <circle cx="300" cy="275" r="210" fill="url(#halo)"/>
+  <path d="M120 705 L300 165 L480 705 Z" fill="#08090a" stroke="#ffb4aa" stroke-width="4" opacity="0.88"/>
+  <path d="M190 705 L300 355 L410 705 Z" fill="#141414" stroke="#e50914" stroke-width="3"/>
+  <rect x="90" y="735" width="420" height="2" fill="#e50914"/>
+  <text x="300" y="790" fill="#ffffff" font-family="Inter, Arial" font-size="54" font-weight="800" text-anchor="middle">THE VOID</text>
+  <text x="300" y="835" fill="#ffb4aa" font-family="Inter, Arial" font-size="18" font-weight="700" text-anchor="middle">NOW SHOWING</text>
+</svg>

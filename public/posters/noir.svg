@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 900" role="img" aria-label="Whispers poster">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#101112"/>
+      <stop offset="0.55" stop-color="#2f3131"/>
+      <stop offset="1" stop-color="#050505"/>
+    </linearGradient>
+    <filter id="blur"><feGaussianBlur stdDeviation="15"/></filter>
+  </defs>
+  <rect width="600" height="900" fill="url(#bg)"/>
+  <path d="M115 260 C215 80 430 130 470 310 C510 480 415 615 305 700 C215 620 90 480 115 260Z" fill="#d7d7d7" opacity="0.08"/>
+  <path d="M180 410 C260 305 355 305 430 410 C355 525 260 525 180 410Z" fill="#f5f5f5" opacity="0.18" filter="url(#blur)"/>
+  <circle cx="304" cy="410" r="35" fill="#e50914"/>
+  <rect x="175" y="675" width="250" height="2" fill="#e50914"/>
+  <text x="300" y="765" fill="#ffffff" font-family="Inter, Arial" font-size="48" font-weight="800" text-anchor="middle">WHISPERS</text>
+  <text x="300" y="810" fill="#c8c6c5" font-family="Inter, Arial" font-size="18" font-weight="700" text-anchor="middle">COMING SOON</text>
+</svg>
