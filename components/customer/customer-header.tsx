@@ -2,18 +2,22 @@ import Link from "next/link";
 import { Clapperboard, Ticket } from "lucide-react";
 import { logoutCustomer } from "@/app/actions";
 import { getCustomerSession } from "@/lib/auth";
+import { CitySelector } from "./city-selector";
 
 export async function CustomerHeader() {
   const customer = await getCustomerSession();
 
   return (
     <header className="customer-header">
-      <Link className="customer-brand" href="/">
-        <span>
-          <Clapperboard size={22} />
-        </span>
-        FilmKeren
-      </Link>
+      <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
+        <Link className="customer-brand" href="/">
+          <span>
+            <Clapperboard size={22} />
+          </span>
+          FilmKeren
+        </Link>
+        <CitySelector />
+      </div>
       <nav aria-label="Customer navigation">
         <Link href="/movies">Film</Link>
         {customer ? (

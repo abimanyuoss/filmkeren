@@ -1,9 +1,31 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CalendarDays, Clock, Film, MapPin, Play, Star, Ticket, UserRound } from "lucide-react";
+import { Metadata } from "next";
+import { cookies } from "next/headers";
 import { BookingSteps } from "@/components/customer/booking-steps";
+import { CustomerFooter } from "@/components/customer/customer-footer";
 import { CustomerHeader } from "@/components/customer/customer-header";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
+import { WishlistButton } from "@/components/customer/wishlist-button";
+import { ReviewSection } from "@/components/customer/review-section";
 import { getMovieById, getMovieShowtimes } from "@/lib/db";
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const movie = await getMovieById(id);
+  if (!movie) return { title: "Not Found" };
+  
+  return {
+    title: movie.title,
+    description: movie.synopsis,
+    openGraph: {
+      title: `${movie.title} - Jadwal & Tiket | FilmKeren`,
+      description: movie.synopsis,
+      images: [movie.posterUrl]
+    }
+  };
+}
 
 export default async function MovieDetailPage({
   params,
@@ -14,9 +36,21 @@ export default async function MovieDetailPage({
 }) {
   const { id } = await params;
   const filters = await searchParams;
-  const [movie, showtimes] = await Promise.all([getMovieById(id), getMovieShowtimes(id)]);
+  const [movie, allShowtimes] = await Promise.all([getMovieById(id), getMovieShowtimes(id)]);
 
   if (!movie) notFound();
+
+  const cookieStore = await cookies();
+  const selectedCity = cookieStore.get("selected-city")?.value || "Jakarta";
+  
+  const activeCityLower = selectedCity.toLowerCase();
+  const showtimes = allShowtimes.filter((schedule) => {
+    const loc = schedule.cinemaLocation.toLowerCase();
+    if (activeCityLower === "jakarta") {
+      return loc.includes("jakarta") || loc.includes("scbd");
+    }
+    return loc.includes(activeCityLower);
+  });
 
   const movieId = movie.id;
   const cinemas = Array.from(new Map(showtimes.map((schedule) => [schedule.cinemaId, schedule])).values());
@@ -49,6 +83,12 @@ export default async function MovieDetailPage({
     <main className="customer-app">
       <CustomerHeader />
       <BookingSteps current={2} />
+      <Breadcrumb
+        items={[
+          { label: "Film", href: "/movies" },
+          { label: movie.title }
+        ]}
+      />
 
       <section className="movie-detail-hero">
         <img alt={`${movie.title} poster`} className="detail-poster" src={movie.posterUrl} />
@@ -97,6 +137,7 @@ export default async function MovieDetailPage({
               <Play size={16} />
               Trailer
             </a>
+            <WishlistButton movieId={movie.id} />
           </div>
         </div>
       </section>
@@ -181,6 +222,10 @@ export default async function MovieDetailPage({
           <article className="customer-panel">Belum ada jadwal aktif untuk film ini.</article>
         )}
       </section>
+
+      <ReviewSection movieTitle={movie.title} />
+
+      <CustomerFooter />
     </main>
   );
 }

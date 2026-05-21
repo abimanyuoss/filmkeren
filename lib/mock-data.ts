@@ -212,6 +212,18 @@ export const mockCinemas: Cinema[] = [
     name: "FilmKeren Kota Kasablanka",
     location: "Jakarta Selatan",
     address: "Kota Kasablanka Lt. 2"
+  },
+  {
+    id: "cinema-paskal-bandung",
+    name: "FilmKeren 23 Paskal",
+    location: "Bandung",
+    address: "23 Paskal Shopping Center Lt. 3, Bandung"
+  },
+  {
+    id: "cinema-tunjungan-surabaya",
+    name: "FilmKeren Tunjungan Plaza",
+    location: "Surabaya",
+    address: "Tunjungan Plaza 6 Lt. 5, Surabaya"
   }
 ];
 
@@ -221,7 +233,9 @@ export const mockStudios: Studio[] = [
   { id: "studio-pp-premiere", name: "PP Premiere", cinemaId: "cinema-pacific-place", cinemaName: "FilmKeren Pacific Place", capacity: 72, format: "Premiere" },
   { id: "studio-pp-dolby", name: "PP Dolby", cinemaId: "cinema-pacific-place", cinemaName: "FilmKeren Pacific Place", capacity: 96, format: "Dolby Atmos" },
   { id: "studio-kokas-regular", name: "Kokas Studio 1", cinemaId: "cinema-kota-kasablanka", cinemaName: "FilmKeren Kota Kasablanka", capacity: 86, format: "Regular 2D" },
-  { id: "studio-kokas-sphere", name: "Kokas SphereX", cinemaId: "cinema-kota-kasablanka", cinemaName: "FilmKeren Kota Kasablanka", capacity: 110, format: "SphereX" }
+  { id: "studio-kokas-sphere", name: "Kokas SphereX", cinemaId: "cinema-kota-kasablanka", cinemaName: "FilmKeren Kota Kasablanka", capacity: 110, format: "SphereX" },
+  { id: "studio-paskal-regular", name: "Paskal Studio 1", cinemaId: "cinema-paskal-bandung", cinemaName: "FilmKeren 23 Paskal", capacity: 80, format: "Regular 2D" },
+  { id: "studio-tunjungan-imax", name: "Tunjungan IMAX", cinemaId: "cinema-tunjungan-surabaya", cinemaName: "FilmKeren Tunjungan Plaza", capacity: 100, format: "IMAX 2D" }
 ];
 
 export const mockSchedules: Schedule[] = [
@@ -280,6 +294,44 @@ export const mockSchedules: Schedule[] = [
     cinemaId: "cinema-kota-kasablanka",
     cinemaName: "FilmKeren Kota Kasablanka",
     cinemaLocation: "Jakarta Selatan",
+    showDate: "2026-05-02"
+  },
+  {
+    id: "schedule-paskal-1500",
+    movieId: "movie-shawshank",
+    movieTitle: "The Shawshank Redemption",
+    genre: "Drama",
+    durationMin: 142,
+    studioName: "Paskal Studio 1",
+    startsAt: "15:00",
+    endsAt: "17:22",
+    format: "Regular 2D",
+    occupancy: 0,
+    price: 50000,
+    posterTone: "void",
+    posterUrl: mockMovies[0].posterUrl,
+    cinemaId: "cinema-paskal-bandung",
+    cinemaName: "FilmKeren 23 Paskal",
+    cinemaLocation: "Bandung",
+    showDate: "2026-05-02"
+  },
+  {
+    id: "schedule-tunjungan-1800",
+    movieId: "movie-dark-knight",
+    movieTitle: "The Dark Knight",
+    genre: "Action",
+    durationMin: 152,
+    studioName: "Tunjungan IMAX",
+    startsAt: "18:00",
+    endsAt: "20:32",
+    format: "IMAX 2D",
+    occupancy: 0,
+    price: 75000,
+    posterTone: "velocity",
+    posterUrl: mockMovies[2].posterUrl,
+    cinemaId: "cinema-tunjungan-surabaya",
+    cinemaName: "FilmKeren Tunjungan Plaza",
+    cinemaLocation: "Surabaya",
     showDate: "2026-05-02"
   }
 ];

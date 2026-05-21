@@ -3,7 +3,10 @@ import { notFound, redirect } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { BookingSteps } from "@/components/customer/booking-steps";
 import { CustomerHeader } from "@/components/customer/customer-header";
+import { CustomerFooter } from "@/components/customer/customer-footer";
 import { PrintTicketButton } from "@/components/customer/print-ticket-button";
+import { TicketSaver } from "@/components/customer/ticket-saver";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { getCustomerSession } from "@/lib/auth";
 import { getBookingDetail } from "@/lib/db";
 
@@ -23,7 +26,30 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
   return (
     <main className="customer-app">
       <CustomerHeader />
+      <TicketSaver
+        ticket={{
+          id: booking.id,
+          movieTitle: booking.movie.title,
+          moviePoster: booking.movie.posterUrl,
+          cinemaName: booking.schedule.cinemaName,
+          studioName: booking.schedule.studioName,
+          showDate: booking.schedule.showDate,
+          startsAt: booking.schedule.startsAt,
+          seats: booking.seats,
+          bookingCode: booking.bookingCode,
+          totalAmount: booking.totalAmount,
+          paymentMethod: booking.paymentMethod,
+          status: booking.status,
+        }}
+      />
       <BookingSteps current={7} />
+      <Breadcrumb
+        items={[
+          { label: "Film", href: "/movies" },
+          { label: booking.movie.title, href: `/movies/${booking.movie.id}` },
+          { label: "Tiket" }
+        ]}
+      />
       <section className="ticket-page">
         <article className="e-ticket">
           <div className="ticket-success">
@@ -96,6 +122,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
           <PrintTicketButton />
         </div>
       </section>
+      <CustomerFooter />
     </main>
   );
 }

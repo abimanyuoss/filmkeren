@@ -1,7 +1,15 @@
 import Link from "next/link";
+import { Metadata } from "next";
 import { CalendarDays, MapPin, Star, Ticket } from "lucide-react";
+import { CustomerFooter } from "@/components/customer/customer-footer";
 import { CustomerHeader, CustomerHeroActions } from "@/components/customer/customer-header";
+import { HeroCarousel } from "@/components/customer/hero-carousel";
+import { CopyButton } from "@/components/customer/copy-button";
 import { getCinemas, getMovies, getSchedules } from "@/lib/db";
+
+export const metadata: Metadata = {
+  title: "Beranda"
+};
 
 export default async function HomePage() {
   const [movies, schedules, cinemas] = await Promise.all([getMovies(), getSchedules(), getCinemas()]);
@@ -11,7 +19,9 @@ export default async function HomePage() {
     <main className="customer-app">
       <CustomerHeader />
 
-      <section className="customer-hero">
+      <HeroCarousel movies={movies} />
+
+      <section className="customer-hero animate-fade-up">
         <div className="hero-copy">
           <span className="eyebrow">Premium Cinema Experience</span>
           <h1>Rasakan Sensasi Nonton Nyaman Tanpa Ribet.</h1>
@@ -29,6 +39,22 @@ export default async function HomePage() {
             </span>
           </Link>
         ) : null}
+      </section>
+
+      <section className="promo-banner-container">
+        <div className="promo-copy">
+          <h2>Cashback 50% Pakai GoPay</h2>
+          <p style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "0.25rem" }}>
+            Nonton lebih hemat tanpa ragu. Masukkan kode: <strong>GOPAYNONTON</strong>
+            <CopyButton text="GOPAYNONTON" />
+            <span style={{ marginLeft: "0.25rem" }}>saat checkout.</span>
+          </p>
+        </div>
+        <div className="promo-action">
+          <Link href="/movies" className="secondary-button" style={{ borderColor: "rgba(255,255,255,0.5)" }}>
+            Pesan Sekarang
+          </Link>
+        </div>
       </section>
 
       <section className="customer-section">
@@ -88,6 +114,7 @@ export default async function HomePage() {
           </div>
         </article>
       </section>
+      <CustomerFooter />
     </main>
   );
 }

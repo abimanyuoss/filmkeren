@@ -3,6 +3,8 @@ import { notFound, redirect } from "next/navigation";
 import { createBooking } from "@/app/actions";
 import { BookingSteps } from "@/components/customer/booking-steps";
 import { CustomerHeader } from "@/components/customer/customer-header";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
+import { PaymentSelector } from "@/components/customer/payment-selector";
 import { getCustomerSession } from "@/lib/auth";
 import { getScheduleDetail } from "@/lib/db";
 
@@ -34,6 +36,13 @@ export default async function CheckoutPage({
     <main className="customer-app">
       <CustomerHeader />
       <BookingSteps current={6} />
+      <Breadcrumb
+        items={[
+          { label: "Film", href: "/movies" },
+          { label: detail.movie.title, href: `/movies/${detail.movie.id}` },
+          { label: "Checkout" }
+        ]}
+      />
       <section className="checkout-layout">
         <form action={createBooking} className="customer-panel checkout-form">
           <span className="eyebrow">Checkout</span>
@@ -56,15 +65,7 @@ export default async function CheckoutPage({
             Nomor HP
             <input name="customerPhone" placeholder="08xxxxxxxxxx" />
           </label>
-          <label>
-            Metode Pembayaran
-            <select name="paymentMethod" defaultValue="QRIS">
-              <option>QRIS</option>
-              <option>Virtual Account</option>
-              <option>Credit Card</option>
-              <option>GoPay</option>
-            </select>
-          </label>
+          <PaymentSelector />
 
           <button className="primary-button full" type="submit">
             Selesaikan Pembayaran & Dapatkan Tiket

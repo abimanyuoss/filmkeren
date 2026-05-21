@@ -1,8 +1,17 @@
 import Link from "next/link";
-import { Search, Star } from "lucide-react";
+import { Star } from "lucide-react";
+import { Metadata } from "next";
 import { BookingSteps } from "@/components/customer/booking-steps";
+import { CustomerFooter } from "@/components/customer/customer-footer";
 import { CustomerHeader } from "@/components/customer/customer-header";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
+import { MovieSearchFilter } from "@/components/customer/movie-search-filter";
+import { WishlistButton } from "@/components/customer/wishlist-button";
 import { getMovies } from "@/lib/db";
+
+export const metadata: Metadata = {
+  title: "Katalog Film"
+};
 
 export default async function MoviesPage() {
   const movies = await getMovies();
@@ -12,33 +21,42 @@ export default async function MoviesPage() {
       <CustomerHeader />
       <BookingSteps current={1} />
 
+      <Breadcrumb items={[{ label: "Film", href: "/movies" }]} />
+
       <section className="customer-page-head">
         <div>
           <span className="eyebrow">Katalog Film</span>
           <h1>Sedang Tayang</h1>
           <p>Temukan film favoritmu dan nikmati pengalaman sinematik terbaik di seluruh jaringan FilmKeren.</p>
         </div>
-        <div className="customer-search">
-          <Search size={16} />
-          <input aria-label="Cari film" placeholder="Cari film..." />
-        </div>
       </section>
 
-      <section className="customer-movie-grid">
-        {movies.map((movie) => (
-          <Link className="customer-movie-card large" href={`/movies/${movie.id}`} key={movie.id}>
-            <img alt={`${movie.title} poster`} src={movie.posterUrl} />
-            <span>
-              <Star size={14} />
-              IMDb #{movie.imdbRank}
-            </span>
-            <strong>{movie.title}</strong>
-            <small>
-              {movie.genre} / {movie.durationMin}m / {movie.rating}
-            </small>
-          </Link>
-        ))}
-      </section>
+      <MovieSearchFilter movies={movies}>
+        {(filtered) => (
+          <div className="customer-movie-grid">
+            {filtered.map((movie) => (
+              <div className="customer-movie-card-wrapper" key={movie.id}>
+                <Link className="customer-movie-card large" href={`/movies/${movie.id}`}>
+                  <img alt={`${movie.title} poster`} src={movie.posterUrl} />
+                  <span>
+                    <Star size={14} />
+                    IMDb #{movie.imdbRank}
+                  </span>
+                  <strong>{movie.title}</strong>
+                  <small>
+                    {movie.genre} / {movie.durationMin}m / {movie.rating}
+                  </small>
+                </Link>
+                <div className="movie-card-actions">
+                  <WishlistButton movieId={movie.id} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </MovieSearchFilter>
+
+      <CustomerFooter />
     </main>
   );
 }
